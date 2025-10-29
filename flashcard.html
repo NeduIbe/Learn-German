@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Flashcard App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .flashcard {
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+        .nav-button.active {
+            background-color: #4f46e5; 
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .nav-button:not(.active):hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .tab-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+
+    <!-- GLOBAL NAVIGATION BAR ADDED HERE -->
+    <nav class="bg-white shadow-lg sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-start h-14 space-x-6">
+                <!-- Links to other pages -->
+                <a href="curriculum.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Home</a>
+                <a href="practice.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Practice</a>
+                <!-- NEW FLASH CARDS LINK ADDED -->
+                <a href="flashcard.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Flash Cards</a>
+                <a href="index1.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Prompt & AI Chatbots</a>
+            </div>
+        </div>
+    </nav>
+    <!-- END GLOBAL NAVIGATION BAR -->
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+                Your Personal Vocabulary Trainer
+            </h1>
+            <p id="user-id-display" class="text-xs text-slate-500 mb-4"></p>
+            <p class="text-lg text-slate-600">
+                Create and practice your flashcards. Data is saved automatically.
+            </p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex justify-center space-x-4 mb-8">
+            <button data-tab="practice" class="tab-button nav-button active text-sm sm:text-base font-medium py-2 px-4 rounded-lg bg-indigo-600 text-white shadow-sm transition duration-150">
+                Practice Mode
+            </button>
+            <button data-tab="add" class="tab-button nav-button text-sm sm:text-base font-medium py-2 px-4 rounded-lg bg-white text-slate-700 shadow-sm transition duration-150">
+                Add New Card
+            </button>
+            <button data-tab="manage" class="tab-button nav-button text-sm sm:text-base font-medium py-2 px-4 rounded-lg bg-white text-slate-700 shadow-sm transition duration-150">
+                Manage Cards
+            </button>
+        </div>
+
+        <main id="app-content" class="max-w-3xl mx-auto">
+            
+            <!-- 1. PRACTICE MODE (Default) -->
+            <section id="practice-tab" class="tab-content">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-slate-200">
+                    <h2 class="text-2xl font-semibold text-indigo-700 mb-4 text-center">Current Flashcard</h2>
+                    <div id="flashcard-container" class="w-full h-64 perspective-[1000px] mb-6">
+                        <div id="flashcard" class="flashcard relative w-full h-full">
+                            
+                            <!-- Card Front (Default View) -->
+                            <div class="flashcard-face flashcard-front bg-indigo-50 border-4 border-indigo-200">
+                                <p id="card-front-text" class="text-3xl font-bold text-slate-900 select-none text-center">
+                                    Click 'Flip' or the Card to start!
+                                </p>
+                            </div>
+
+                            <!-- Card Back (Flipped View) -->
+                            <div class="flashcard-face flashcard-back bg-indigo-700 text-white border-4 border-indigo-800">
+                                <p id="card-back-text" class="text-3xl font-bold text-white select-none text-center">
+                                    [Translation will appear here]
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="practice-controls" class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                        <button id="flip-button" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-200">
+                            Flip Card
+                        </button>
+                        <button id="next-button" class="bg-slate-700 hover:bg-slate-800 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition duration-200">
+                            Next Word
+                        </button>
+                    </div>
+                    <p id="card-count" class="text-center text-sm text-slate-500 mt-4">0 cards loaded.</p>
+                </div>
+            </section>
+
+            <!-- 2. ADD NEW CARD MODE -->
+            <section id="add-tab" class="tab-content hidden">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-slate-200">
+                    <h2 class="text-2xl font-semibold text-indigo-700 mb-6">Add New Vocabulary Card</h2>
+                    <form id="add-card-form" class="space-y-4">
+                        <div>
+                            <label for="front-input" class="block text-sm font-medium text-slate-700 mb-1">Foreign Word / Phrase (Front)</label>
+                            <input type="text" id="front-input" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label for="back-input" class="block text-sm font-medium text-slate-700 mb-1">Translation / Definition (Back)</label>
+                            <input type="text" id="back-input" required class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition duration-200 shadow-md">
+                            Save Card
+                        </button>
+                        <p id="add-status" class="text-center text-sm pt-2"></p>
+                    </form>
+                </div>
+            </section>
+
+            <!-- 3. MANAGE CARDS MODE -->
+            <section id="manage-tab" class="tab-content hidden">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-slate-200">
+                    <h2 class="text-2xl font-semibold text-indigo-700 mb-4">Your Saved Cards</h2>
+                    <p class="text-sm text-slate-500 mb-4" id="manage-card-count">Total: 0 cards</p>
+                    <div id="card-list" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+                        <!-- Card items will be inserted here by JavaScript -->
+                        <p id="loading-message" class="text-center text-slate-500">Loading cards...</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Firebase Integration and App Logic -->
+    <script type="module">
+        // Global environment variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+        // Firestore and Auth imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, onSnapshot, addDoc, doc, deleteDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        let db, auth, userId;
+        let vocabularyCollectionRef;
+        let vocabulary = [];
+        let currentCardIndex = 0;
+
+        const uiElements = {
+            card: document.getElementById('flashcard'),
+            cardFrontText: document.getElementById('card-front-text'),
+            cardBackText: document.getElementById('card-back-text'),
+            flipButton: document.getElementById('flip-button'),
+            nextButton: document.getElementById('next-button'),
+            cardCount: document.getElementById('card-count'),
+            addCardForm: document.getElementById('add-card-form'),
+            frontInput: document.getElementById('front-input'),
+            backInput: document.getElementById('back-input'),
+            addStatus: document.getElementById('add-status'),
+            cardList: document.getElementById('card-list'),
+            manageCardCount: document.getElementById('manage-card-count'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            loadingMessage: document.getElementById('loading-message')
+        };
+
+        // --- Firebase Initialization ---
+
+        async function initializeFirebase() {
+            try {
+                if (Object.keys(firebaseConfig).length === 0) {
+                    console.error("Firebase config is missing.");
+                    return;
+                }
+
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('Debug'); 
+
+                // Authentication
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const userCredential = await signInWithCustomToken(auth, __initial_auth_token);
+                    userId = userCredential.user.uid;
+                } else {
+                    await signInAnonymously(auth);
+                    // Use a unique ID for anonymous sessions or authenticated users
+                    userId = auth.currentUser?.uid || crypto.randomUUID(); 
+                }
+                
+                uiElements.userIdDisplay.textContent = `User ID: ${userId}`;
+
+                // Set Firestore Collection Path (Private data)
+                // /artifacts/{appId}/users/{userId}/vocabulary
+                vocabularyCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/vocabulary`);
+
+                startListeningToVocabulary();
+
+            } catch (error) {
+                console.error("Failed to initialize Firebase or sign in:", error);
+                uiElements.userIdDisplay.textContent = `User ID: Error loading.`;
+            }
+        }
+
+        // --- Data Listener ---
+
+        function startListeningToVocabulary() {
+            // Setup real-time listener for vocabulary collection
+            // Note: We avoid orderBy() to prevent index missing errors. Sorting is done client-side.
+            const q = query(vocabularyCollectionRef);
+
+            onSnapshot(q, (snapshot) => {
+                const newVocabulary = [];
+                snapshot.forEach((doc) => {
+                    newVocabulary.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by timestamp (newest first) client-side
+                vocabulary = newVocabulary.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)); 
+                
+                renderCardList();
+                updatePracticeMode();
+                uiElements.loadingMessage.classList.add('hidden');
+
+            }, (error) => {
+                console.error("Error listening to vocabulary:", error);
+                uiElements.cardList.innerHTML = '<p class="text-red-500 text-center">Failed to load cards.</p>';
+                uiElements.loadingMessage.classList.add('hidden');
+            });
+        }
+
+        // --- Practice Mode Logic ---
+
+        function updatePracticeMode() {
+            const count = vocabulary.length;
+            uiElements.cardCount.textContent = `${currentCardIndex + 1} / ${count} cards`;
+
+            if (count === 0) {
+                uiElements.cardFrontText.textContent = "No cards yet! Go to 'Add New Card' to begin.";
+                uiElements.cardBackText.textContent = "[No translation]";
+                uiElements.nextButton.disabled = true;
+                uiElements.flipButton.disabled = true;
+                return;
+            }
+
+            // Ensure index is within bounds (e.g., if a card was deleted)
+            if (currentCardIndex >= count) {
+                currentCardIndex = 0;
+            }
+            
+            uiElements.nextButton.disabled = false;
+            uiElements.flipButton.disabled = false;
+            
+            const currentCard = vocabulary[currentCardIndex];
+            uiElements.cardFrontText.textContent = currentCard.front;
+            uiElements.cardBackText.textContent = currentCard.back;
+
+            // Ensure card is always unflipped when moving to the next
+            uiElements.card.classList.remove('flipped');
+        }
+
+        function flipCard() {
+            if (vocabulary.length > 0) {
+                uiElements.card.classList.toggle('flipped');
+            }
+        }
+
+        function nextCard() {
+            if (vocabulary.length > 0) {
+                currentCardIndex = (currentCardIndex + 1) % vocabulary.length;
+                updatePracticeMode();
+            }
+        }
+
+        // --- Add Card Logic ---
+
+        uiElements.addCardForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const front = uiElements.frontInput.value.trim();
+            const back = uiElements.backInput.value.trim();
+
+            if (!front || !back || !vocabularyCollectionRef) {
+                uiElements.addStatus.className = 'text-center text-red-500 pt-2';
+                uiElements.addStatus.textContent = 'Please fill out both fields.';
+                return;
+            }
+
+            uiElements.addStatus.className = 'text-center text-indigo-500 pt-2';
+            uiElements.addStatus.textContent = 'Saving...';
+            
+            try {
+                await addDoc(vocabularyCollectionRef, {
+                    front: front,
+                    back: back,
+                    timestamp: Date.now() // Use timestamp for sorting
+                });
+
+                uiElements.addStatus.className = 'text-center text-green-600 pt-2';
+                uiElements.addStatus.textContent = 'Card saved successfully!';
+                uiElements.frontInput.value = '';
+                uiElements.backInput.value = '';
+
+                // Switch back to practice mode after successful save (optional)
+                document.querySelector('[data-tab="practice"]').click(); 
+
+            } catch (error) {
+                console.error("Error adding document:", error);
+                uiElements.addStatus.className = 'text-center text-red-500 pt-2';
+                uiElements.addStatus.textContent = `Error saving card: ${error.message}`;
+            }
+        });
+
+        // --- Manage Cards Logic ---
+
+        function renderCardList() {
+            uiElements.cardList.innerHTML = '';
+            uiElements.manageCardCount.textContent = `Total: ${vocabulary.length} cards`;
+
+            if (vocabulary.length === 0) {
+                uiElements.cardList.innerHTML = '<p class="text-center text-slate-500 p-4">You have no vocabulary cards saved yet.</p>';
+                return;
+            }
+
+            vocabulary.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'flex justify-between items-center bg-indigo-50 p-3 rounded-lg border border-indigo-200';
+                cardElement.innerHTML = `
+                    <p class="truncate text-slate-800 font-medium">${card.front} <span class="text-slate-500 ml-2">(${card.back})</span></p>
+                    <button data-id="${card.id}" class="delete-btn text-red-600 hover:text-red-800 transition duration-150 p-1 rounded-full hover:bg-red-100 flex items-center justify-center" aria-label="Delete card">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <path fill-rule="evenodd" d="M16.5 4.475C16.5 4.298 16.353 4.15 16.176 4.15H7.824C7.647 4.15 7.5 4.298 7.5 4.475V5H5.25a.75.75 0 000 1.5h13.5a.75.75 0 000-1.5H16.5V4.475zM8.344 7.5c0-.414.336-.75.75-.75h5.812a.75.75 0 010 1.5H9.094a.75.75 0 01-.75-.75zM12 11.25a.75.75 0 00-.75.75v5.25a.75.75 0 001.5 0V12a.75.75 0 00-.75-.75zM9.75 12a.75.75 0 00-.75.75v5.25a.75.75 0 001.5 0V12.75a.75.75 0 00-.75-.75zM14.25 12a.75.75 0 00-.75.75v5.25a.75.75 0 001.5 0V12.75a.75.75 0 00-.75-.75z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                `;
+                uiElements.cardList.appendChild(cardElement);
+            });
+
+            // Attach event listeners to delete buttons
+            uiElements.cardList.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', handleDeleteCard);
+            });
+        }
+
+        async function handleDeleteCard(event) {
+            const cardId = event.currentTarget.dataset.id;
+            if (!cardId) return;
+
+            // Simple confirmation message (since alert() is forbidden)
+            if (!confirm("Are you sure you want to delete this card?")) {
+                return;
+            }
+
+            try {
+                const docRef = doc(vocabularyCollectionRef, cardId);
+                await deleteDoc(docRef);
+                console.log(`Card ${cardId} deleted successfully.`);
+            } catch (error) {
+                console.error("Error deleting card:", error);
+                // Display error message temporarily
+                const listItem = event.currentTarget.closest('.flex');
+                listItem.innerHTML += '<span class="text-red-500 ml-4">Error!</span>';
+                setTimeout(() => renderCardList(), 3000); // Re-render to clear temp message
+            }
+        }
+
+
+        // --- UI & Event Handlers ---
+
+        function setupTabNavigation() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = {
+                'practice': document.getElementById('practice-tab'),
+                'add': document.getElementById('add-tab'),
+                'manage': document.getElementById('manage-tab')
+            };
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const targetTab = e.currentTarget.dataset.tab;
+
+                    // Update button styling
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('active', 'bg-indigo-600', 'text-white');
+                        btn.classList.add('bg-white', 'text-slate-700');
+                    });
+                    e.currentTarget.classList.add('active', 'bg-indigo-600', 'text-white');
+                    e.currentTarget.classList.remove('bg-white', 'text-slate-700');
+
+                    // Show/hide content
+                    Object.keys(tabContents).forEach(key => {
+                        tabContents[key].classList.add('hidden');
+                    });
+                    tabContents[targetTab].classList.remove('hidden');
+
+                    // If managing cards, ensure the list is refreshed visually
+                    if (targetTab === 'manage') {
+                        renderCardList();
+                    }
+                });
+            });
+        }
+        
+        // --- Initialization ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupTabNavigation();
+            
+            // Practice Mode Buttons
+            uiElements.flipButton.addEventListener('click', flipCard);
+            uiElements.card.addEventListener('click', flipCard);
+            uiElements.nextButton.addEventListener('click', nextCard);
+
+            // Start the application by initializing Firebase
+            initializeFirebase();
+        });
+
+    </script>
+</body>
+</html>

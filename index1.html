@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goethe B1 Interactive Toolkit (Gemini Enabled)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Calm Neutrals (Slate background, Indigo accent, White cards) -->
+    <!-- Application Structure Plan: A two-tab SPA ("Core Resources", "AI Prompt Library"). "Resources" view presents a summary chart (Chart.js) and a styled table. "AI Library" is now split between static, copyable Speaking Prompts (using JS modals) and two new interactive LLM features: a writing correction tool (Text input + Gemini API call) and a vocabulary builder (Input word + Gemini API call). This structure creates a single point of interaction for all B1 study tasks. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 50vh;
+            max-height: 400px;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button.active {
+            background-color: #4f46e5; 
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .nav-button:not(.active):hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .content-section {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal {
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        .modal-content {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .copy-button {
+            transition: all 0.2s ease;
+        }
+        .copy-button:active {
+            transform: scale(0.95);
+            background-color: #3730a3;
+        }
+        .copied-feedback {
+            animation: fadeOut 2s ease-out forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased">
+
+   <!-- GLOBAL NAVIGATION BAR ADDED HERE -->
+    <nav class="bg-white shadow-lg sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-start h-14 space-x-6">
+                <!-- Links to other pages -->
+                <a href="curriculum.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Home</a>
+                <a href="practice.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Practice</a>
+                <!-- NEW FLASH CARDS LINK ADDED -->
+                <a href="flashcard.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Flash Cards</a>
+                <a href="index1.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Prompt & AI Chatbots</a>
+            </div>
+        </div>
+    </nav>
+    <!-- END GLOBAL NAVIGATION BAR -->
+    
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        
+        <!-- REMOVED: The old link block has been removed as it duplicates the new navigation bar. -->
+
+        <header class="text-center mb-8 md:mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+                Goethe B1 Interactive Toolkit
+            </h1>
+            <p class="text-lg text-slate-600">
+                Your actionable resources and AI prompts for B1 self-study.
+            </p>
+        </header>
+
+        <nav class="flex justify-center space-x-2 sm:space-x-4 mb-8 md:mb-12" aria-label="Main Navigation">
+            <button id="nav-resources" class="nav-button active text-sm sm:text-base font-medium py-2 px-4 sm:py-3 sm:px-6 rounded-lg bg-white text-slate-700 shadow-sm">
+                Core Resources
+            </button>
+            <button id="nav-prompts" class="nav-button text-sm sm:text-base font-medium py-2 px-4 sm:py-3 sm:px-6 rounded-lg bg-white text-slate-700 shadow-sm">
+                AI Prompt Library
+            </button>
+        </nav>
+
+        <main id="content-wrapper">
+            
+            <section id="resources-content" class="content-section space-y-8">
+                <div>
+                    <h2 class="text-2xl font-semibold text-slate-800 mb-4 text-center">Resources At a Glance</h2>
+                    <p class="text-center text-slate-600 mb-6">This chart summarizes the tools available in your study plan.</p>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="chart-container">
+                            <canvas id="resourcesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-semibold text-slate-800 mb-4 text-center">Core Materials & Free Resources</h2>
+                    <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Resource</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Use Case</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-slate-200">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Primary Course</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Deutsche Welle (DW): *Nicos Weg*</td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">**MANDATORY.** Your textbook/curriculum for A1, A2, and B1.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Vocabulary/SRS</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Anki (Desktop/Mobile App)</td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">**MANDATORY.** Use the B1 vocabulary list or shared decks.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Listening Practice</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">DW Langsam Gesprochene Nachrichten</td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">**Daily Practice.** News spoken slowly for B1 ear training.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Listening & Culture</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Easy German (Podcast/YouTube)</td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">**Passive Immersion.** Natural conversation and cultural context.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Reading Practice</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Nachrichtenleicht.de</td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">News simplified (A2/B1 level). Read one short article daily.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Grammar Reference</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Lingolia German / DeutschAkademie</td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">Excellent for clear explanations of specific grammar points.</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Mock Tests</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">Goethe-Institut website</td>
+                                    <td class="px-6 py-4 text-sm text-slate-600">**Crucial.** Download official B1 practice tests for Phase 3.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="prompts-content" class="content-section hidden space-y-8">
+                
+                <div>
+                    <h2 class="text-2xl font-semibold text-slate-800 mb-6 text-center">AI Speaking Practice Prompts (Copy/Paste)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-indigo-700">B1 Presentation (Part 3)</h3>
+                                <p class="text-slate-600 mt-2">Practice your monologue. Get feedback on grammar, vocabulary, and structure.</p>
+                            </div>
+                            <button onclick="showModal('speaking_presentation')" class="mt-4 w-full bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">
+                                Show Prompts
+                            </button>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between">
+                            <h3 class="text-lg font-semibold text-indigo-700">B1 Discussion (Part 2)</h3>
+                            <p class="text-slate-600 mt-2">Practice planning an event with an AI partner. Focus on making suggestions and agreeing/disagreeing.</p>
+                            <button onclick="showModal('speaking_discussion')" class="mt-4 w-full bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors">
+                                Show Prompts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-8 border-t-2 border-indigo-200">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- New LLM Feature 1: Writing Correction -->
+                    <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col justify-between">
+                        <h2 class="text-2xl font-semibold text-slate-800 mb-4 text-center">✨ Formal Writing Correction</h2>
+                        <p class="text-slate-600 mt-2">Type your B1 text (e.g., formal email) and get immediate, targeted correction and structural feedback from an AI examiner.</p>
+                        <textarea id="email-input" class="mt-4 p-3 border border-slate-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm h-32" placeholder="Start writing your formal German email here..."></textarea>
+                        <button onclick="correctWriting()" class="mt-4 w-full bg-emerald-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-emerald-700 transition-colors flex items-center justify-center">
+                            <span class="mr-2">✨</span> Get Formal Correction
+                        </button>
+                        <p id="correction-loading" class="text-sm text-center text-emerald-600 mt-2 hidden">Processing and analyzing your text...</p>
+                        <div id="correction-result" class="mt-4 p-4 bg-slate-100 border border-slate-200 rounded-lg text-sm hidden whitespace-pre-wrap"></div>
+                    </div>
+
+                    <!-- New LLM Feature 2: Vocabulary Builder -->
+                    <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col justify-between">
+                        <h2 class="text-2xl font-semibold text-slate-800 mb-4 text-center">✨ Vocabulary Context Builder</h2>
+                        <p class="text-slate-600">Enter any B1 word, phrase, or conjunction and get three example sentences to see its usage in context.</p>
+                        <input type="text" id="vocab-input" class="w-full p-3 border border-slate-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500 mt-4" placeholder="e.g., sich bewerben, der Feierabend, obwohl" />
+                        <button onclick="generateVocabularySentences()" class="w-full bg-pink-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-pink-700 transition-colors flex items-center justify-center mt-4">
+                            <span class="mr-2">✨</span> Generate B1 Examples
+                        </button>
+                        <p id="vocab-loading" class="text-sm text-center text-pink-600 mt-2 hidden">Generating contextual sentences...</p>
+                        <div id="vocab-result" class="mt-4 p-4 bg-slate-100 border border-slate-200 rounded-lg text-sm hidden whitespace-pre-wrap"></div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="prompt-modal" class="modal fixed inset-0 bg-slate-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+                <h2 id="modal-title" class="text-xl font-semibold text-slate-800">Prompt Details</h2>
+                <button onclick="hideModal()" class="text-slate-500 hover:text-slate-800 text-3xl">&times;</button>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                <div>
+                    <label for="modal-system-prompt" class="block text-sm font-medium text-slate-700 mb-1">AI System Instruction (Set this first)</label>
+                    <div class="relative">
+                        <pre id="modal-system-prompt" class="bg-slate-100 text-slate-700 p-4 rounded-md text-sm whitespace-pre-wrap font-mono"></pre>
+                        <button onclick="copyToClipboard('modal-system-prompt', this)" class="copy-button absolute top-2 right-2 bg-indigo-600 text-white text-xs font-medium py-1 px-2 rounded-md hover:bg-indigo-700">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="modal-user-prompt" class="block text-sm font-medium text-slate-700 mb-1">Your User Prompt (Send this second)</label>
+                    <div class="relative">
+                        <pre id="modal-user-prompt" class="bg-slate-100 text-slate-700 p-4 rounded-md text-sm whitespace-pre-wrap font-mono"></pre>
+                        <button onclick="copyToClipboard('modal-user-prompt', this)" class="copy-button absolute top-2 right-2 bg-indigo-600 text-white text-xs font-medium py-1 px-2 rounded-md hover:bg-indigo-700">
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden textarea for copy functionality -->
+    <textarea id="clipboard-helper" class="absolute -left-full"></textarea>
+
+
+    <script>
+        
+        const API_KEY = "";
+        const API_URL_BASE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=";
+        const API_URL = API_URL_BASE + API_KEY;
+
+        async function callGeminiApi(userQuery, systemInstruction) {
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] },
+            };
+
+            const maxRetries = 5;
+            let delay = 1000;
+
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Error: No text generated.";
+                        return text;
+                    } else if (response.status === 429) {
+                        if (i < maxRetries - 1) {
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            delay *= 2; 
+                        } else {
+                            throw new Error('API Rate Limit Exceeded after multiple retries.');
+                        }
+                    } else {
+                        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                    }
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        console.error("Gemini API call failed:", error);
+                        return "Ein Fehler ist aufgetreten. Bitte versuche es später noch einmal. (An error occurred. Please try again later.)";
+                    }
+                }
+            }
+        }
+
+        async function generateVocabularySentences() {
+            const inputElement = document.getElementById('vocab-input');
+            const resultElement = document.getElementById('vocab-result');
+            const loadingElement = document.getElementById('vocab-loading');
+            const word = inputElement.value.trim();
+
+            if (!word) {
+                resultElement.textContent = "Bitte gib ein deutsches Wort ein. (Please enter a German word.)";
+                resultElement.classList.remove('hidden');
+                return;
+            }
+
+            const systemPrompt = `You are a German language tutor. Your task is to generate exactly three distinct, contextual, and grammatically correct example sentences for the user's input word. The sentences must be written at the B1 level of the CEFR. Display the three sentences as a numbered list.`;
+            const userQuery = `Generate three B1-level German example sentences for the word/phrase: "${word}".`;
+            
+            resultElement.classList.add('hidden');
+            loadingElement.classList.remove('hidden');
+            
+            const resultText = await callGeminiApi(userQuery, systemPrompt);
+
+            loadingElement.classList.add('hidden');
+            resultElement.textContent = resultText;
+            resultElement.classList.remove('hidden');
+        }
+
+        async function correctWriting() {
+            const inputElement = document.getElementById('email-input');
+            const resultElement = document.getElementById('correction-result');
+            const loadingElement = document.getElementById('correction-loading');
+            const text = inputElement.value.trim();
+
+            if (text.length < 50) {
+                resultElement.textContent = "Der Text ist zu kurz. Bitte schreibe mindestens 50 Zeichen für eine Korrektur. (The text is too short. Please write at least 50 characters for a correction.)";
+                resultElement.classList.remove('hidden');
+                return;
+            }
+
+            const systemPrompt = `Act as a Goethe B1 writing examiner specializing in formal emails. Your task is to analyze the following user text. Provide feedback in German, divided into two sections: 1. Fehlerkorrektur (Corrected Text): Present the fully corrected, polished version of the user's text. 2. Feedback (Structure & Tone): Provide a short analysis (max 3 sentences) on the formal tone, correct address (Anrede), and closing formula (Grußformel).`;
+            const userQuery = `Bitte korrigiere und analysiere diesen B1-Text: "${text}"`;
+            
+            resultElement.classList.add('hidden');
+            loadingElement.classList.remove('hidden');
+
+            const resultText = await callGeminiApi(userQuery, systemPrompt);
+
+            loadingElement.classList.add('hidden');
+            resultElement.textContent = resultText;
+            resultElement.classList.remove('hidden');
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const nav = {
+                resources: document.getElementById('nav-resources'),
+                prompts: document.getElementById('nav-prompts')
+            };
+
+            const content = {
+                resources: document.getElementById('resources-content'),
+                prompts: document.getElementById('prompts-content')
+            };
+
+            const modal = document.getElementById('prompt-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSystemPrompt = document.getElementById('modal-system-prompt');
+            const modalUserPrompt = document.getElementById('modal-user-prompt');
+
+            const promptData = {
+                speaking_presentation: {
+                    title: 'B1 Presentation (Part 3)',
+                    system: "Act as a Goethe B1 speaking examiner. I will give a short presentation on a topic. Provide feedback on my grammar accuracy, use of B1 vocabulary, and clear structuring (Introduction, Main Points, Conclusion). I will provide the script below.",
+                    user: "My presentation is about 'Warum es wichtig ist, genug Sport zu machen.' (Why it is important to exercise enough). [Paste your written script here or your transcribed speech.]"
+                },
+                speaking_discussion: {
+                    title: 'B1 Discussion (Part 2)',
+                    system: "Act as a friendly German friend who is planning an event with me. Our goal is to discuss and agree on a plan. I will start the conversation.",
+                    user: "Hallo! Wir müssen unseren Urlaub planen. Ich schlage vor, wir fahren ans Meer. Was hältst du davon?"
+                }
+            };
+            
+            function showView(viewId) {
+                Object.values(content).forEach(c => c.classList.add('hidden'));
+                content[viewId].classList.remove('hidden');
+
+                Object.values(nav).forEach(n => n.classList.remove('active'));
+                nav[viewId].classList.add('active');
+            }
+
+            nav.resources.addEventListener('click', () => showView('resources'));
+            nav.prompts.addEventListener('click', () => showView('prompts'));
+
+            window.showModal = (promptKey) => {
+                const data = promptData[promptKey];
+                modalTitle.textContent = data.title;
+                modalSystemPrompt.textContent = data.system;
+                modalUserPrompt.textContent = data.user;
+                modal.classList.remove('hidden');
+            }
+
+            window.hideModal = () => {
+                modal.classList.add('hidden');
+            }
+
+            window.copyToClipboard = (elementId, button) => {
+                const textToCopy = document.getElementById(elementId).textContent;
+                const helper = document.getElementById('clipboard-helper');
+                helper.value = textToCopy;
+                helper.select();
+                helper.setSelectionRange(0, 99999); 
+                try {
+                    document.execCommand('copy');
+                    
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.disabled = true;
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                    }, 2000);
+                    
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                }
+            }
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    hideModal();
+                }
+            });
+
+            function initChart() {
+                const ctx = document.getElementById('resourcesChart').getContext('2d');
+                Chart.defaults.font.family = "'Inter', sans-serif";
+                Chart.defaults.color = '#334155';
+                
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Core Resources', 'Mock Tests', 'Speaking Prompts', 'Writing Tools'],
+                        datasets: [{
+                            label: '# of Items/Tools',
+                            data: [6, 1, 2, 2],
+                            backgroundColor: [
+                                'rgba(79, 70, 229, 0.2)',
+                                'rgba(59, 130, 246, 0.2)',
+                                'rgba(16, 185, 129, 0.2)',
+                                'rgba(234, 179, 8, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(79, 70, 229, 1)',
+                                'rgba(59, 130, 246, 1)',
+                                'rgba(16, 185, 129, 1)',
+                                'rgba(234, 179, 8, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: '#0f172a',
+                                titleFont: { weight: 'bold' },
+                                bodyFont: { weight: '500' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            initChart();
+            showView('resources');
+        });
+    </script>
+</body>
+</html>

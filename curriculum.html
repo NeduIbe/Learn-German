@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive B1 German Study Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Calm Neutrals (Slate background, Indigo accent, Slate text) -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 50vh;
+            max-height: 450px;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button.active {
+            background-color: #4f46e5; 
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .nav-button:not(.active):hover {
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+        .phase-content {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <!-- GLOBAL NAVIGATION BAR ADDED HERE -->
+    <nav class="bg-white shadow-lg sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-start h-14 space-x-6">
+                <!-- Links to other pages -->
+                <a href="curriculum.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Home</a>
+                <a href="practice.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Practice</a>
+                <!-- NEW FLASH CARDS LINK ADDED -->
+                <a href="flashcard.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Flash Cards</a>
+                <a href="index1.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Prompt & AI Chatbots</a>
+            </div>
+        </div>
+    </nav>
+    <!-- END GLOBAL NAVIGATION BAR -->
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8 md:pb-12">
+        
+        <header class="text-center mb-8 md:mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+                6-Month Interactive Goethe B1 Study Plan
+            </h1>
+            <p class="text-lg text-slate-600">
+                Your interactive guide from A1 to B1 Exam Readiness.
+            </p>
+        </header>
+
+        <nav class="flex justify-center space-x-2 sm:space-x-4 mb-8 md:mb-12" aria-label="Study Phases">
+            <button id="nav-phase-1" class="nav-button active text-sm sm:text-base font-medium py-2 px-4 sm:py-3 sm:px-6 rounded-lg bg-white text-slate-700 shadow-sm">
+                Phase 1 (Months 1-2)
+            </button>
+            <button id="nav-phase-2" class="nav-button text-sm sm:text-base font-medium py-2 px-4 sm:py-3 sm:px-6 rounded-lg bg-white text-slate-700 shadow-sm">
+                Phase 2 (Months 3-4)
+            </button>
+            <button id="nav-phase-3" class="nav-button text-sm sm:text-base font-medium py-2 px-4 sm:py-3 sm:px-6 rounded-lg bg-white text-slate-700 shadow-sm">
+                Phase 3 (Months 5-6)
+            </button>
+        </nav>
+
+        <main id="content-wrapper">
+            
+            <section id="phase-1-content" class="phase-content">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-2xl font-semibold text-indigo-700 mb-3">Phase 1: Foundation & A2 Consolidation</h2>
+                            <p class="text-slate-600 mb-4">
+                                This initial 2-month phase is all about building a rock-solid foundation. We will review A1 concepts and fully complete the A2 level using *Nicos Weg*. The focus is on mastering core grammar and building the essential vocabulary needed for the next steps.
+                            </p>
+                            <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-md">
+                                <p class="font-medium text-indigo-800">
+                                    <span class="font-bold">Goal:</span> Complete *Nicos Weg* A1 (Review) and A2 (Full Content). Solidify foundational grammar.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-slate-800 mb-4">Key Grammar & Skills</h3>
+                            <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                                <li>Nominative & Accusative Cases</li>
+                                <li>Basic Prepositions (Dative & Accusative)</li>
+                                <li>Regular & Irregular Verbs (Present Tense)</li>
+                                <li>Modal Verbs (Present Tense)</li>
+                                <li>Separable Verbs</li>
+                                <li>Perfect Tense (with *haben* & *sein*)</li>
+                                <li>Simple Subordinate Clauses (e.g., `dass`, `weil`)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-slate-800 mb-4">Exam Preparation Focus </h3>
+                            <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                                <li><span class="font-medium text-slate-700">Reading (Lesen):</span> Practice identifying main ideas in short, simple A2-level texts.</li>
+                                <li><span class="font-medium text-slate-700">Listening (Hören):</span> Start with slow German podcasts. Focus on listening for specific information like numbers, names, and times.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col justify-center">
+                        <h3 class="text-xl font-semibold text-slate-800 mb-4 text-center">Relative Skill Focus (Phase 1)</h3>
+                        <p class="text-slate-600 text-center mb-4">
+                            In this phase, the primary effort is on grammar and basic comprehension skills (reading and listening).
+                        </p>
+                        <div class="chart-container">
+                            <canvas id="skillFocusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="phase-2-content" class="phase-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-2xl font-semibold text-indigo-700 mb-3">Phase 2: B1 Core Content Deep Dive</h2>
+                            <p class="text-slate-600 mb-4">
+                                During months 3 and 4, we dive into the B1 material. This is where you'll learn to express more complex ideas, opinions, and hypotheses. The focus shifts from simple comprehension to active production (writing and speaking).
+                            </p>
+                            <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-md">
+                                <p class="font-medium text-indigo-800">
+                                    <span class="font-bold">Goal:</span> Complete the entire *Nicos Weg* B1 course. Master B1-level grammar and expand vocabulary.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-slate-800 mb-4">Key Grammar & Skills</h3>
+                            <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                                <li>Genitive Case (for recognition)</li>
+                                <li>Präteritum (Imperfect Tense) for common verbs</li>
+                                <li>Relative Pronouns & Clauses</li>
+                                <li>Adjective Endings (all cases)</li>
+                                <li>Subjunctive II (`Konjunktiv II` - `würde`, `hätte`, `wäre`)</li>
+                                <li>N-Deklination</li>
+                                <li>Passive Voice (simple forms)</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-slate-800 mb-4">Exam Preparation Focus</h3>
+                            <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                                <li><span class="font-medium text-slate-700">Writing (Schreiben):</span> Start practicing formal email structures (Goethe exam parts 1 & 3). Use AI for correction.</li>
+                                <li><span class="font-medium text-slate-700">Speaking (Sprechen):</span> Practice the presentation structure (exam part 3). Record yourself and analyze fluency.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col justify-center">
+                        <h3 class="text-xl font-semibold text-slate-800 mb-4 text-center">Relative Skill Focus (Phase 2)</h3>
+                        <p class="text-slate-600 text-center mb-4">
+                            Notice the shift: grammar is still important, but production skills (Writing & Speaking) ramp up significantly.
+                        </p>
+                        <div class="chart-container">
+                            <canvas id="skillFocusChartPhase2"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="phase-3-content" class="phase-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h2 class="text-2xl font-semibold text-indigo-700 mb-3">Phase 3: Intensive Exam Practice</h2>
+                            <p class="text-slate-600 mb-4">
+                                The final two months are dedicated to mastering the exam format. No new *Nicos Weg* content is introduced. All 3 hours of daily study are re-focused on completing mock tests, analyzing mistakes, and polishing your productive skills to match the exam's requirements.
+                            </p>
+                            <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-md">
+                                <p class="font-medium text-indigo-800">
+                                    <span class="font-bold">Goal:</span> Master all exam formats. Complete multiple full-length mock tests under timed conditions.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-slate-800 mb-4">Key Skill Refinement</h3>
+                            <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                                <li>Complex Sentences (e.g., `obwohl`, `trotzdem`)</li>
+                                <li>Using formal vs. informal tone correctly</li>
+                                <li>Targeted error correction from mock tests</li>
+                                <li>Improving fluency and coherence in speaking</li>
+                                <li>Time management for all exam sections</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white p-6 rounded-lg shadow-md">
+                            <h3 class="text-xl font-semibold text-slate-800 mb-4">Exam Preparation Focus</h3>
+                            <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                                <li><span class="font-medium text-slate-700">Mock Exams:</span> Complete 2 full, timed exams per week.</li>
+                                <li><span class="font-medium text-slate-700">Speaking (Sprechen):</span> Practice the discussion/planning section (part 2) with AI.</li>
+                                <li><span class="font-medium text-slate-700">Writing (Schreiben):</span> Master the opinion/blog post structure (part 2).</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md flex flex-col justify-center">
+                        <h3 class="text-xl font-semibold text-slate-800 mb-4 text-center">Relative Skill Focus (Phase 3)</h3>
+                        <p class="text-slate-600 text-center mb-4">
+                            In the final phase, dedicated exam practice becomes the dominant focus, integrating all other skills.
+                        </p>
+                        <div class="chart-container">
+                            <canvas id="skillFocusChartPhase3"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const navButtons = {
+                'phase-1': document.getElementById('nav-phase-1'),
+                'phase-2': document.getElementById('nav-phase-2'),
+                'phase-3': document.getElementById('nav-phase-3')
+            };
+
+            const contentBlocks = {
+                'phase-1': document.getElementById('phase-1-content'),
+                'phase-2': document.getElementById('phase-2-content'),
+                'phase-3': document.getElementById('phase-3-content')
+            };
+            
+            const chartDataElements = {
+                'phase-1': 'skillFocusChart',
+                'phase-2': 'skillFocusChartPhase2',
+                'phase-3': 'skillFocusChartPhase3'
+            };
+
+            let activePhase = 'phase-1';
+            let skillFocusChart;
+
+            const phaseData = {
+                'phase-1': {
+                    label: 'Focus (Phase 1)',
+                    data: [5, 4, 3, 1, 1, 1] 
+                },
+                'phase-2': {
+                    label: 'Focus (Phase 2)',
+                    data: [4, 3, 3, 4, 4, 2]
+                },
+                'phase-3': {
+                    label: 'Focus (Phase 3)',
+                    data: [2, 4, 4, 5, 5, 5]
+                }
+            };
+            
+            const chartLabels = ['Grammar', 'Reading', 'Listening', 'Writing', 'Speaking', 'Exam Practice'];
+
+            function renderChart(phaseId) {
+                // Get the context for the current phase's canvas
+                const canvasId = chartDataElements[phaseId];
+                const newCtx = document.getElementById(canvasId)?.getContext('2d');
+
+                if (!newCtx) {
+                    console.error(`Canvas context not found for ${canvasId}`);
+                    return;
+                }
+
+                // If a chart already exists, destroy it before rendering a new one (important for dynamic charts in different containers)
+                if (skillFocusChart) {
+                    skillFocusChart.destroy();
+                }
+
+                Chart.defaults.font.family = "'Inter', sans-serif";
+                Chart.defaults.color = '#334155';
+
+                skillFocusChart = new Chart(newCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: phaseData[phaseId].label,
+                            data: phaseData[phaseId].data,
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderColor: 'rgba(79, 70, 229, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(79, 70, 229, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(79, 70, 229, 1)'
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        scales: {
+                            r: {
+                                angleLines: {
+                                    color: '#cbd5e1' 
+                                },
+                                grid: {
+                                    color: '#e2e8f0' 
+                                },
+                                pointLabels: {
+                                    font: {
+                                        size: 13,
+                                        weight: '500'
+                                    },
+                                    color: '#334155' 
+                                },
+                                ticks: {
+                                    backdropColor: 'rgba(255, 255, 255, 0.75)',
+                                    color: '#64748b',
+                                    stepSize: 1,
+                                    beginAtZero: true,
+                                    min: 0,
+                                    max: 5
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: '#0f172a',
+                                titleFont: { weight: 'bold' },
+                                bodyFont: { weight: '500' },
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.r !== null) {
+                                            label += context.parsed.r + ' / 5';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function updateView(phaseId) {
+                activePhase = phaseId;
+                
+                Object.values(contentBlocks).forEach(block => {
+                    block.classList.add('hidden');
+                });
+                contentBlocks[phaseId].classList.remove('hidden');
+
+                Object.values(navButtons).forEach(button => {
+                    button.classList.remove('active', 'bg-indigo-600', 'text-white');
+                    button.classList.add('bg-white', 'text-slate-700');
+                });
+                navButtons[phaseId].classList.add('active');
+                navButtons[phaseId].classList.remove('bg-white', 'text-slate-700');
+                
+                // Re-render the chart for the newly active phase
+                // This ensures the chart appears in the correct canvas element and is responsive
+                renderChart(phaseId);
+            }
+
+            // --- Event Listeners ---
+            navButtons['phase-1'].addEventListener('click', () => updateView('phase-1'));
+            navButtons['phase-2'].addEventListener('click', () => updateView('phase-2'));
+            navButtons['phase-3'].addEventListener('click', () => updateView('phase-3'));
+
+            // Initial load
+            updateView('phase-1');
+        });
+    </script>
+</body>
+</html>

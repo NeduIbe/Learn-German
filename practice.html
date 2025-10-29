@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive German Study Plan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Calm Neutrals (Slate/Indigo) -->
+    <!-- Application Structure Plan: The SPA is structured with a primary top-level navigation (Weekday/Weekend) which is the most logical division from the source report. This toggle, powered by JS, shows/hides the two main content sections. The key design decision was to transform the static "Slot 3 Rotation" from the report into a dynamic, interactive module. A sub-navigation of day-buttons (Mon-Fri) allows the user to update the "Slot 3" card's content in real-time. This task-oriented design makes the plan actionable ("What is my task for today?") rather than just informational, which is a major UX improvement. A donut chart is included in the Weekday view to visually summarize the time allocation. -->
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; 
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 300px;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button.active {
+            background-color: #4f46e5; 
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .nav-button:not(.active):hover {
+            background-color: #ffffff;
+        }
+        .day-button {
+            transition: all 0.2s ease;
+        }
+        .day-button.active {
+            background-color: #eef2ff;
+            color: #4338ca;
+            font-weight: 600;
+            border-color: #a5b4fc;
+        }
+        .day-button:not(.active):hover {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+        }
+        .content-section {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
+
+  <!-- GLOBAL NAVIGATION BAR ADDED HERE -->
+    <nav class="bg-white shadow-lg sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-start h-14 space-x-6">
+                <!-- Links to other pages -->
+                <a href="curriculum.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Home</a>
+                <a href="practice.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Practice</a>
+                <!-- NEW FLASH CARDS LINK ADDED -->
+                <a href="flashcard.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Flash Cards</a>
+                <a href="index1.html" class="text-slate-700 hover:text-indigo-600 font-medium py-2 transition duration-150 rounded-md px-3 hover:bg-slate-100">Prompt & AI Chatbots</a>
+            </div>
+        </div>
+    </nav>
+    <!-- END GLOBAL NAVIGATION BAR -->
+
+    <div class="container mx-auto px-4 py-8 md:py-12">
+        
+        <header class="text-center mb-8 md:mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+                Interactive 3-Hour Study Plan
+            </h1>
+            <p class="text-lg text-slate-600">
+                Your daily guide to German B1, made actionable.
+            </p>
+        </header>
+
+        <nav class="flex justify-center space-x-2 sm:space-x-4 mb-8 md:mb-12" aria-label="Main Schedule">
+            <button id="nav-weekday" class="nav-button active text-base font-medium py-3 px-6 rounded-lg bg-white text-slate-700 shadow-sm">
+                Weekday Schedule
+            </button>
+            <button id="nav-weekend" class="nav-button text-base font-medium py-3 px-6 rounded-lg bg-white text-slate-700 shadow-sm">
+                Weekend Schedule
+            </button>
+        </nav>
+
+        <main id="content-wrapper">
+            
+            <section id="weekday-content" class="content-section">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-semibold text-slate-800">Weekday Plan (Mon-Fri)</h2>
+                    <p class="text-slate-600 mt-1">Here is your 3-hour daily plan. Click a day in 'Slot 3' to see your specific task.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-8">
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="flex-shrink-0 bg-indigo-100 text-indigo-700 rounded-full h-10 w-10 flex items-center justify-center font-bold">1</span>
+                            <h3 class="text-xl font-semibold text-slate-800">Slot 1: Review & Maintenance</h3>
+                        </div>
+                        <p class="text-slate-600"><span class="font-semibold text-slate-700">Duration:</span> 30 minutes</p>
+                        <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                            <li><span class="font-medium">Anki/Flashcards:</span> Review all due B1 cards. Focus on articles and plural forms.</li>
+                            <li><span class="font-medium">Quick Drill (10 min):</span> Targeted grammar exercise (e.g., adjective endings, Dative prepositions).</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="flex-shrink-0 bg-indigo-100 text-indigo-700 rounded-full h-10 w-10 flex items-center justify-center font-bold">2</span>
+                            <h3 class="text-xl font-semibold text-slate-800">Slot 2: Core Content</h3>
+                        </div>
+                        <p class="text-slate-600"><span class="font-semibold text-slate-700">Duration:</span> 90 minutes</p>
+                        <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                            <li><span class="font-medium">Nicos Weg Lesson (45 min):</span> Complete one section. Watch, do all exercises, and take notes.</li>
+                            <li><span class="font-medium">Grammar Deep Dive (45 min):</span> Research the lesson's grammar point. Do 1-2 pages of supplementary exercises.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="flex-shrink-0 bg-indigo-100 text-indigo-700 rounded-full h-10 w-10 flex items-center justify-center font-bold">3</span>
+                            <h3 class="text-xl font-semibold text-slate-800">Slot 3: Active Skill Practice</h3>
+                        </div>
+                        <p class="text-slate-600"><span class="font-semibold text-slate-700">Duration:</span> 60 minutes</p>
+                        
+                        <div class="flex flex-wrap gap-2" role="tablist" aria-label="Slot 3 Day">
+                            <button id="day-mon" class="day-button flex-grow sm:flex-none text-sm font-medium py-2 px-3 rounded-md border" role="tab" aria-selected="true">Mon</button>
+                            <button id="day-tue" class="day-button flex-grow sm:flex-none text-sm font-medium py-2 px-3 rounded-md border" role="tab" aria-selected="false">Tue</button>
+                            <button id="day-wed" class="day-button flex-grow sm:flex-none text-sm font-medium py-2 px-3 rounded-md border" role="tab" aria-selected="false">Wed</button>
+                            <button id="day-thu" class="day-button flex-grow sm:flex-none text-sm font-medium py-2 px-3 rounded-md border" role="tab" aria-selected="false">Thu</button>
+                            <button id="day-fri" class="day-button flex-grow sm:flex-none text-sm font-medium py-2 px-3 rounded-md border" role="tab" aria-selected="false">Fri</button>
+                        </div>
+                        
+                        <div id="slot-3-content" class="bg-slate-50 p-4 rounded-md border" role="tabpanel">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-xl font-semibold text-slate-800 mb-4 text-center">Weekday Time Allocation (180 Mins)</h3>
+                    <div class="chart-container">
+                        <canvas id="timeChart"></canvas>
+                    </div>
+                </div>
+
+            </section>
+
+            <section id="weekend-content" class="content-section hidden">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-semibold text-slate-800">Weekend Plan (Sat-Sun)</h2>
+                    <p class="text-slate-600 mt-1">Your weekend is for consolidation and rest.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
+                    <div class="bg-white p-6 rounded-lg shadow-md space-y-4">
+                        <h3 class="text-xl font-semibold text-indigo-700">Saturday: Consolidation</h3>
+                        <p class="text-slate-600"><span class="font-semibold text-slate-700">Duration:</span> 3-4 hours</p>
+                        <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                            <li><span class="font-medium">Review:</span> Go through all mistakes from the week.</li>
+                            <li><span class="font-medium">Vocabulary:</span> Add 10-15 new high-frequency words to Anki.</li>
+                            <li><span class="font-medium">Mock Section:</span> Complete a full, timed Reading or Listening section.</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md space-y-4">
+                        <h3 class="text-xl font-semibold text-indigo-700">Sunday: Rest & Immersion</h3>
+                        <p class="text-slate-600"><span class="font-semibold text-slate-700">Duration:</span> 1 hour (Max)</p>
+                        <ul class="space-y-2 text-slate-600 list-disc list-inside">
+                            <li><span class="font-medium">Passive Immersion:</span> Watch a German movie/series with German subtitles.</li>
+                            <li>Listen to German music.</li>
+                            <li>Read a fun comic/children's book.</li>
+                            <li class="font-semibold text-indigo-600">No structured study!</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const mainNav = {
+                weekday: document.getElementById('nav-weekday'),
+                weekend: document.getElementById('nav-weekend')
+            };
+            
+            const mainContent = {
+                weekday: document.getElementById('weekday-content'),
+                weekend: document.getElementById('weekend-content')
+            };
+
+            const dayButtons = {
+                mon: document.getElementById('day-mon'),
+                tue: document.getElementById('day-tue'),
+                wed: document.getElementById('day-wed'),
+                thu: document.getElementById('day-thu'),
+                fri: document.getElementById('day-fri')
+            };
+            
+            const slot3ContentEl = document.getElementById('slot-3-content');
+            
+            const slot3Data = {
+                mon: {
+                    title: 'Monday (Reading)',
+                    task: 'Read a B1-level article (DW Langsam/Nachrichtenleicht). Summarize the main points in German (5 sentences).'
+                },
+                tue: {
+                    title: 'Tuesday (Writing)',
+                    task: 'Choose an exam prompt (Email/Opinion). Write under timed conditions (20 minutes). Use AI for correction.'
+                },
+                wed: {
+                    title: 'Wednesday (Listening)',
+                    task: 'Listen to a B1-level podcast (Slow German/Easy German). Transcribe 5-10 key phrases and look up new vocabulary.'
+                },
+                thu: {
+                    title: 'Thursday (Speaking)',
+                    task: 'Use an AI tutor (or Tandem partner) to discuss a topic from *Nicos Weg* or a B1 exam prompt.'
+                },
+                fri: {
+                    title: 'Friday (Flex/Mock)',
+                    task: 'Focus on the weakest skill of the week, or do a timed reading/listening exam section.'
+                }
+            };
+            
+            let timeChart;
+
+            function initWeekdayChart() {
+                if (timeChart) {
+                    timeChart.destroy();
+                }
+                
+                const ctx = document.getElementById('timeChart').getContext('2d');
+                Chart.defaults.font.family = "'Inter', sans-serif";
+                Chart.defaults.color = '#334155';
+                
+                timeChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: [
+                            'Slot 1: Review (30m)',
+                            'Slot 2: Core Content (90m)',
+                            'Slot 3: Practice (60m)'
+                        ],
+                        datasets: [{
+                            data: [30, 90, 60],
+                            backgroundColor: [
+                                '#c7d2fe', 
+                                '#4f46e5', 
+                                '#a5b4fc'  
+                            ],
+                            borderColor: '#f1f5f9',
+                            borderWidth: 4,
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        responsive: true,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true,
+                                    pointStyle: 'rectRounded'
+                                }
+                            },
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: '#0f172a',
+                                titleFont: { weight: 'bold' },
+                                bodyFont: { weight: '500' },
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed !== null) {
+                                            label += context.parsed + ' minutes';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function updateSlot3(day) {
+                const data = slot3Data[day];
+                slot3ContentEl.innerHTML = `
+                    <p class="font-semibold text-slate-700">${data.title}</p>
+                    <p class="text-slate-600 text-sm mt-1">${data.task}</p>
+                `;
+                
+                Object.values(dayButtons).forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-selected', 'false');
+                });
+                
+                dayButtons[day].classList.add('active');
+                dayButtons[day].setAttribute('aria-selected', 'true');
+            }
+            
+            function showView(viewId) {
+                Object.values(mainContent).forEach(content => {
+                    content.classList.add('hidden');
+                });
+                mainContent[viewId].classList.remove('hidden');
+                
+                Object.values(mainNav).forEach(nav => {
+                    nav.classList.remove('active');
+                });
+                mainNav[viewId].classList.add('active');
+                
+                if (viewId === 'weekday' && !timeChart) {
+                    // Only initialize the chart once and when the element is visible
+                    setTimeout(initWeekdayChart, 0); 
+                }
+            }
+
+            mainNav.weekday.addEventListener('click', () => showView('weekday'));
+            mainNav.weekend.addEventListener('click', () => showView('weekend'));
+            
+            dayButtons.mon.addEventListener('click', () => updateSlot3('mon'));
+            dayButtons.tue.addEventListener('click', () => updateSlot3('tue'));
+            dayButtons.wed.addEventListener('click', () => updateSlot3('wed'));
+            dayButtons.thu.addEventListener('click', () => updateSlot3('thu'));
+            dayButtons.fri.addEventListener('click', () => updateSlot3('fri'));
+
+            // Initial view setup
+            showView('weekday');
+            updateSlot3('mon');
+        });
+    </script>
+</body>
+</html>
